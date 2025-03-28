@@ -5,12 +5,7 @@ import GameBoard, { GamePiece } from "./GameBoard";
 import TargetBoard from "./TargetBoard";
 
 function App() {
-  return (
-    <div>
-      <TargetBoard />
-      <GameBoard gamePieceSize="5rem" />
-    </div>
-  );
+  return <GameBoard gamePieceSize="5rem" />;
 }
 
 export default App;
