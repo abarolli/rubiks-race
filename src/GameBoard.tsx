@@ -50,7 +50,40 @@ function GameBoard({ gamePieceSize }: GameBoardProps) {
     return gameBoard;
   };
 
-  const [gamePieces, setGamePieces] = useState(randomBoard(gamePieceSize));
+  const randomTargetBoard = (squareSize: string) => {
+    const colorCounter = {
+      blue: 0,
+      white: 0,
+      green: 0,
+      orange: 0,
+      red: 0,
+      yellow: 0,
+    };
+
+    const nSquares = 9;
+    const board = [];
+    const colors: (keyof typeof colorCounter)[] = [
+      "blue",
+      "white",
+      "green",
+      "orange",
+      "red",
+      "yellow",
+    ];
+    while (board.length < nSquares) {
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      if (colorCounter[color] < 4) {
+        board.push({ squareSize, color });
+        colorCounter[color] += 1;
+      }
+    }
+
+    return board;
+  };
+
+  const [gamePieces, setGamePieces] = useState(randomPieces(gamePieceSize));
+  const [targetBoard, setTargetBoard] = useState(randomTargetBoard("20px"));
+  const [winStatus, setWinStatus] = useState(false);
 
   const isEmptySpace = (index: number): boolean => {
     return gamePieces[index].color === "black";
