@@ -83,6 +83,8 @@ function GameBoard({ gamePieceSize }: GameBoardProps) {
   const [gamePieces, setGamePieces] = useState(randomPieces(gamePieceSize));
   const [targetBoard, setTargetBoard] = useState(randomTargetBoard("20px"));
   const [winStatus, setWinStatus] = useState(false);
+  const [time, setTime] = useState(0);
+  const [isRunning, setRunning] = useState(false);
 
   const isEmptySpace = (index: number): boolean => {
     return gamePieces[index].color === "black";
@@ -182,10 +184,27 @@ function GameBoard({ gamePieceSize }: GameBoardProps) {
   useEffect(() => {
     console.log("Game pieces changed, checking win status");
 
-    if (checkInnerSquare()) setWinStatus(true);
+    if (checkInnerSquare()) {
+      setWinStatus(true);
+      setRunning(false);
+    }
   }, [gamePieces]);
 
+  useEffect(() => {
+    if (!isRunning) return;
+
+    let interval = setInterval(() => {
+      setTime((time) => time + 1);
+      console.log("setting time");
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isRunning]);
+
   const handleClick = (index: number) => {
+    if (winStatus) return;
+
+    setRunning(true);
     setGamePieces((currentConfiguration) => {
       let left = index,
         right = index,
@@ -222,6 +241,14 @@ function GameBoard({ gamePieceSize }: GameBoardProps) {
     });
   };
 
+  const reset = () => {
+    setTargetBoard(randomTargetBoard("20px"));
+    setGamePieces(randomPieces(gamePieceSize));
+    setWinStatus(false);
+    setTime(0);
+    setRunning(false);
+  };
+
   return (
     <div
       style={{
@@ -246,7 +273,9 @@ function GameBoard({ gamePieceSize }: GameBoardProps) {
           />
         ))}
       />
+      {(isRunning || winStatus) && `${time}s`}
       {winStatus && <h3>Congratulations!</h3>}
+      {winStatus && <button onClick={reset}>Reset</button>}
     </div>
   );
 }
