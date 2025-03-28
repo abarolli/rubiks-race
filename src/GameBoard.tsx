@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import Square from "./Square";
 import Board from "./Board";
+import TargetBoard from "./TargetBoard";
 
 export type GamePiece = { id: number; size: string; color: string };
 
@@ -10,9 +11,7 @@ interface GameBoardProps {
 }
 
 function GameBoard({ gamePieceSize }: GameBoardProps) {
-  const randomBoard = (gamePieceSize: string) => {
-    console.log("randomizing board");
-
+  const randomPieces = (gamePieceSize: string) => {
     const nSquaresPerColor = 4;
     const gameBoard: GamePiece[] = [
       ...Array(nSquaresPerColor)
@@ -110,15 +109,13 @@ function GameBoard({ gamePieceSize }: GameBoardProps) {
     index: number,
     currentPieces: GamePiece[]
   ) => {
-    const gamePiecesCopy = [...currentPieces];
-
-    var tempNullPiece = gamePiecesCopy[leftIndex];
+    var tempNullPiece = currentPieces[leftIndex];
     for (; leftIndex < index; leftIndex++)
-      gamePiecesCopy[leftIndex] = gamePiecesCopy[leftIndex + 1];
+      currentPieces[leftIndex] = currentPieces[leftIndex + 1];
 
-    gamePiecesCopy[leftIndex] = tempNullPiece;
+    currentPieces[leftIndex] = tempNullPiece;
 
-    return gamePiecesCopy;
+    return currentPieces;
   };
 
   const shiftRight = (
@@ -126,15 +123,13 @@ function GameBoard({ gamePieceSize }: GameBoardProps) {
     index: number,
     currentPieces: GamePiece[]
   ) => {
-    const gamePiecesCopy = [...currentPieces];
-
-    var tempNullPiece = gamePiecesCopy[rightIndex];
+    var tempNullPiece = currentPieces[rightIndex];
     for (; rightIndex > index; rightIndex--)
-      gamePiecesCopy[rightIndex] = gamePiecesCopy[rightIndex - 1];
+      currentPieces[rightIndex] = currentPieces[rightIndex - 1];
 
-    gamePiecesCopy[rightIndex] = tempNullPiece;
+    currentPieces[rightIndex] = tempNullPiece;
 
-    return gamePiecesCopy;
+    return currentPieces;
   };
 
   const shiftUp = (
@@ -142,15 +137,13 @@ function GameBoard({ gamePieceSize }: GameBoardProps) {
     index: number,
     currentPieces: GamePiece[]
   ) => {
-    const gamePiecesCopy = [...currentPieces];
-
-    var tempNullPiece = gamePiecesCopy[topIndex];
+    var tempNullPiece = currentPieces[topIndex];
     for (; topIndex < index; topIndex += 5)
-      gamePiecesCopy[topIndex] = gamePiecesCopy[topIndex + 5];
+      currentPieces[topIndex] = currentPieces[topIndex + 5];
 
-    gamePiecesCopy[topIndex] = tempNullPiece;
+    currentPieces[topIndex] = tempNullPiece;
 
-    return gamePiecesCopy;
+    return currentPieces;
   };
 
   const shiftDown = (
@@ -158,16 +151,39 @@ function GameBoard({ gamePieceSize }: GameBoardProps) {
     index: number,
     currentPieces: GamePiece[]
   ) => {
-    const gamePiecesCopy = [...currentPieces];
-
-    var tempNullPiece = gamePiecesCopy[bottomIndex];
+    var tempNullPiece = currentPieces[bottomIndex];
     for (; bottomIndex > index; bottomIndex -= 5)
-      gamePiecesCopy[bottomIndex] = gamePiecesCopy[bottomIndex - 5];
+      currentPieces[bottomIndex] = currentPieces[bottomIndex - 5];
 
-    gamePiecesCopy[bottomIndex] = tempNullPiece;
+    currentPieces[bottomIndex] = tempNullPiece;
 
-    return gamePiecesCopy;
+    return currentPieces;
   };
+
+  const getInnerSquares = () => {
+    const inner = [];
+    for (let i = 6; i <= 16; i += 5) {
+      for (let j = 0; j < 3; j++) inner.push(gamePieces[i + j]);
+    }
+
+    return inner;
+  };
+
+  const checkInnerSquare = () => {
+    const inner = getInnerSquares();
+    console.log(targetBoard);
+    console.log(inner);
+    for (let i = 0; i < targetBoard.length; i++) {
+      if (inner[i].color !== targetBoard[i].color) return false;
+    }
+    return true;
+  };
+
+  useEffect(() => {
+    console.log("Game pieces changed, checking win status");
+
+    if (checkInnerSquare()) setWinStatus(true);
+  }, [gamePieces]);
 
   const handleClick = (index: number) => {
     setGamePieces((currentConfiguration) => {
@@ -180,45 +196,58 @@ function GameBoard({ gamePieceSize }: GameBoardProps) {
 
       while (!isAtLeftEdge(left)) {
         left -= 1;
-        if (isEmptySpace(left)) return shiftLeft(left, index, newConfiguration);
+        if (isEmptySpace(left)) shiftLeft(left, index, newConfiguration);
       }
 
       while (!isAtRightEdge(right)) {
         right += 1;
-        if (isEmptySpace(right))
-          return shiftRight(right, index, newConfiguration);
+        if (isEmptySpace(right)) shiftRight(right, index, newConfiguration);
       }
 
       while (!isAtTopEdge(top)) {
         top -= 5;
         if (isEmptySpace(top)) {
-          return shiftUp(top, index, newConfiguration);
+          shiftUp(top, index, newConfiguration);
         }
       }
 
       while (!isAtBottomEdge(bottom)) {
         bottom += 5;
         if (isEmptySpace(bottom)) {
-          return shiftDown(bottom, index, newConfiguration);
+          shiftDown(bottom, index, newConfiguration);
         }
       }
 
-      return currentConfiguration;
+      return newConfiguration;
     });
   };
 
   return (
-    <Board
-      squareSize={gamePieceSize}
-      squares={gamePieces.map((piece, index) => (
-        <Square
-          key={piece.id}
-          size={piece.size}
-          color={piece.color}
-          onClick={() => handleClick(index)}
-        />
-      ))}
-    />
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100vh",
+        backgroundColor: "grey",
+        rowGap: "20px",
+      }}
+    >
+      <TargetBoard squares={targetBoard} />
+      <Board
+        squareSize={gamePieceSize}
+        squares={gamePieces.map((piece, index) => (
+          <Square
+            key={piece.id}
+            size={piece.size}
+            color={piece.color}
+            onClick={() => handleClick(index)}
+          />
+        ))}
+      />
+      {winStatus && <h3>Congratulations!</h3>}
+    </div>
   );
 }
 
