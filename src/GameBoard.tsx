@@ -4,7 +4,9 @@ import Square from "./Square";
 import Board from "./Board";
 import TargetBoard from "./TargetBoard";
 
-export type GamePiece = { id: number; size: string; color: string };
+type Color = "blue" | "orange" | "red" | "white" | "yellow" | "green" | "black";
+
+export type GamePiece = { id: number; size: string; color: Color };
 
 interface GameBoardProps {
   gamePieceSize: string;
@@ -16,23 +18,23 @@ function GameBoard({ gamePieceSize }: GameBoardProps) {
     const gameBoard: GamePiece[] = [
       ...Array(nSquaresPerColor)
         .fill(null)
-        .map(() => ({ id: 0, size: gamePieceSize, color: "blue" })),
+        .map(() => ({ id: 0, size: gamePieceSize, color: "blue" as Color })),
       ...Array(nSquaresPerColor)
         .fill(null)
-        .map(() => ({ id: 0, size: gamePieceSize, color: "white" })),
+        .map(() => ({ id: 0, size: gamePieceSize, color: "white" as Color })),
       ...Array(nSquaresPerColor)
         .fill(null)
-        .map(() => ({ id: 0, size: gamePieceSize, color: "green" })),
+        .map(() => ({ id: 0, size: gamePieceSize, color: "green" as Color })),
       ...Array(nSquaresPerColor)
         .fill(null)
-        .map(() => ({ id: 0, size: gamePieceSize, color: "orange" })),
+        .map(() => ({ id: 0, size: gamePieceSize, color: "orange" as Color })),
       ...Array(nSquaresPerColor)
         .fill(null)
-        .map(() => ({ id: 0, size: gamePieceSize, color: "red" })),
+        .map(() => ({ id: 0, size: gamePieceSize, color: "red" as Color })),
       ...Array(nSquaresPerColor)
         .fill(null)
-        .map(() => ({ id: 0, size: gamePieceSize, color: "yellow" })),
-      { id: 0, size: gamePieceSize, color: "black" },
+        .map(() => ({ id: 0, size: gamePieceSize, color: "yellow" as Color })),
+      { id: 0, size: gamePieceSize, color: "black" as Color },
     ];
 
     for (let i = 0; i < 15; i++) {
