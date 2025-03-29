@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import Square from "./Square";
 import Board from "./Board";
@@ -87,6 +87,8 @@ function GameBoard({ gamePieceSize }: GameBoardProps) {
   const [winStatus, setWinStatus] = useState(false);
   const [time, setTime] = useState(0);
   const [isRunning, setRunning] = useState(false);
+  const slideAudio = useRef<HTMLAudioElement>(new Audio("/audio/slide.wav"));
+  const winAudio = useRef<HTMLAudioElement>(new Audio("/audio/winner.wav"));
 
   const isEmptySpace = (index: number): boolean => {
     return gamePieces[index].color === "black";
@@ -189,6 +191,7 @@ function GameBoard({ gamePieceSize }: GameBoardProps) {
     if (checkInnerSquare()) {
       setWinStatus(true);
       setRunning(false);
+      winAudio.current.play();
     }
   }, [gamePieces]);
 
@@ -205,7 +208,6 @@ function GameBoard({ gamePieceSize }: GameBoardProps) {
 
   const handleClick = (index: number) => {
     if (winStatus) return;
-
     setRunning(true);
     setGamePieces((currentConfiguration) => {
       let left = index,
@@ -214,21 +216,28 @@ function GameBoard({ gamePieceSize }: GameBoardProps) {
         bottom = index;
 
       const newConfiguration = [...currentConfiguration];
-
+      let shifted = false;
       while (!isAtLeftEdge(left)) {
         left -= 1;
-        if (isEmptySpace(left)) shiftLeft(left, index, newConfiguration);
+        if (isEmptySpace(left)) {
+          shiftLeft(left, index, newConfiguration);
+          shifted = true;
+        }
       }
 
       while (!isAtRightEdge(right)) {
         right += 1;
-        if (isEmptySpace(right)) shiftRight(right, index, newConfiguration);
+        if (isEmptySpace(right)) {
+          shiftRight(right, index, newConfiguration);
+          shifted = true;
+        }
       }
 
       while (!isAtTopEdge(top)) {
         top -= 5;
         if (isEmptySpace(top)) {
           shiftUp(top, index, newConfiguration);
+          shifted = true;
         }
       }
 
@@ -236,9 +245,14 @@ function GameBoard({ gamePieceSize }: GameBoardProps) {
         bottom += 5;
         if (isEmptySpace(bottom)) {
           shiftDown(bottom, index, newConfiguration);
+          shifted = true;
         }
       }
 
+      if (shifted) {
+        slideAudio.current.currentTime = 0;
+        slideAudio.current.play();
+      }
       return newConfiguration;
     });
   };
@@ -277,7 +291,11 @@ function GameBoard({ gamePieceSize }: GameBoardProps) {
       />
       {(isRunning || winStatus) && `${time}s`}
       {winStatus && <h3>Congratulations!</h3>}
-      {winStatus && <button onClick={reset}>Reset</button>}
+      {winStatus && (
+        <button style={{ padding: "10px" }} onClick={reset}>
+          Reset
+        </button>
+      )}
     </div>
   );
 }
